@@ -1,5 +1,5 @@
 function [hasManyCol, cc_mask, ccolIndex] = checkColCrowd(img, BCDetectionThres)
-lenThres = 20;
+lenThres = 12;
 edgeThreshold = 20;
 stdThres = 8.8;
 win = 80;

@@ -44,30 +44,25 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 function [] = updatePresentInfo(handles)
-global oriDataList presentNum
+global oriDataList presentNum ori3sig mask
 startCol = 5; startRow = 9;
 height = 512; width = 640;
-img = loadData(oriDataList(presentNum).oriDataPath, height, width, startRow, startCol);
+[~, ori3sig] = loadData(oriDataList(presentNum).oriDataPath, height, width, startRow, startCol);
+mask = imread(oriDataList(presentNum).maskPath);
 set(handles.ChipID, 'string', oriDataList(presentNum).ID);
 label = oriDataList(presentNum).label;
 defectName = {'坏列', '坏行', '柱状坏列', '斑块', '斜纹', '底纹', '其他', '正常'};
+labelArr = [1,1,1,2,3,4,5,6];
+set(handles.DefectMenu, 'value', labelArr(label));
+set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
 % 左侧
 axes(handles.LeftDisplayArea);
-cla reset;
-ave = mean(img(:));
-sigma = std(img(:));
-imagesc(img, [ave - 3 * sigma, ave + 3 * sigma]); colormap('gray');
+imshow(ori3sig, []); hold on;
+Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+himage = imshow(Lrgb);
+set(himage, 'AlphaData', 0.2);
 set(handles.LeftDisplayArea, 'xTick', []);
 set(handles.LeftDisplayArea, 'ytick', []);
-% 右侧
-axes(handles.RightDisplayArea);
-cla reset;
-set(handles.RightAreaName, 'string', '程序检测结果');
-set(handles.DefaultLevelText, 'string', ['程序判定：', defectName(label)]);
-mask = imread(oriDataList(presentNum).maskPath);
-imshow(mask);
-set(handles.RightDisplayArea, 'xTick', []);
-set(handles.RightDisplayArea, 'ytick', []);
 
 function [oriDataList] = getOriDataList()
 global ODpath DRfile CPpath chipType
@@ -233,3 +228,20 @@ function DefectMenu_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+function showOriButton_Callback(hObject, eventdata, handles)
+global ori3sig
+axes(handles.LeftDisplayArea);
+imshow(ori3sig, []);
+set(handles.displayAxes1, 'xTick', []);
+set(handles.displayAxes1, 'ytick', []);
+
+function showResButton_Callback(hObject, eventdata, handles)
+global ori3sig mask
+axes(handles.LeftDisplayArea);
+imshow(ori3sig, []); hold on;
+Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+himage = imshow(Lrgb);
+set(himage, 'AlphaData', 0.2);
+set(handles.LeftDisplayArea, 'xTick', []);
+set(handles.LeftDisplayArea, 'ytick', []);

@@ -60,13 +60,6 @@ end
 
 for i = 1 : totalRow
 	for j = 1 : totalCol
-% 		if auditMap(i,j) == 1
-% 			value = 'BIN6';
-% 		elseif auditMap(i,j) == 0
-% 			value = 'BINB';
-% 		else
-% 			value = ' ';
-% 		end
 		value = auditMap{i,j};
 		eRange = sprintf('%s%d', tableFirstCol + j - 1, firstRow + i + 1);
 		WB.Worksheets.Item(1).Range(eRange).Value = value;
