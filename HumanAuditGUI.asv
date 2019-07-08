@@ -17,7 +17,7 @@ else
 end
 
 function HumanAuditGUI_OpeningFcn(hObject, eventdata, handles, varargin)
-global humanAuditDone ODpath DRfile CPpath chipType presentNum oriDataList totalNum wrongList
+global humanAuditDone ODpath DRfile CPpath chipType presentNum oriDataList totalNum
 humanAuditDone = -1;
 presentNum = 1;
 set(handles.PrevDataButton, 'Enable', 'off');
@@ -45,7 +45,6 @@ else % 在线
 	updatePresentInfo(handles);
 end
 totalNum = length(oriDataList);
-wrongList = zeros(totalNum, 1);
 set(handles.totalNumText, 'string', ['/ ', num2str(totalNum)]);
 handles.output = hObject;
 guidata(hObject, handles);
@@ -65,13 +64,10 @@ set(handles.DefectMenu, 'value', labelArr(label));
 set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
 % 左侧
 axes(handles.LeftDisplayArea);
-imshow(ori3sig, []);
-if label < 8
-	hold on;
-	Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
-	himage = imshow(Lrgb);
-	set(himage, 'AlphaData', 0.2);
-end
+imshow(ori3sig, []); hold on;
+Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+himage = imshow(Lrgb);
+set(himage, 'AlphaData', 0.2);
 set(handles.LeftDisplayArea, 'xTick', []);
 set(handles.LeftDisplayArea, 'ytick', []);
 
@@ -249,8 +245,8 @@ function showOriButton_Callback(hObject, eventdata, handles)
 global ori3sig
 axes(handles.LeftDisplayArea);
 imshow(ori3sig, []);
-set(handles.LeftDisplayArea, 'xTick', []);
-set(handles.LeftDisplayArea, 'ytick', []);
+set(handles.displayAxes1, 'xTick', []);
+set(handles.displayAxes1, 'ytick', []);
 
 function showResButton_Callback(hObject, eventdata, handles)
 global ori3sig mask
@@ -264,13 +260,6 @@ set(handles.LeftDisplayArea, 'ytick', []);
 
 function HumanAuditGUI_WindowKeyPressFcn(hObject, eventdata, handles)
 kid = eventdata.Key;
-% fprintf('%s\n', kid);
-if strcmp(kid, 'leftarrow')
-	PrevDataButton_Callback(hObject, eventdata, handles);
-end
-if strcmp(kid, 'rightarrow')
-	NextDataButton_Callback(hObject, eventdata, handles);
-end
 
 function presentNumEdit_Callback(hObject, eventdata, handles)
 
@@ -291,10 +280,10 @@ else
 end
 
 function printWrongListButton_Callback(hObject, eventdata, handles)
-global totalNum wrongList oriDataList
-fprintf('以下芯片存在缺陷漏检: \n');
+ wrongList oriDataList
 for i = 1 : totalNum
 	if wrongList(i) == 1
 		fprintf('%s\n', oriDataList(i).ID);
 	end
 end
+
