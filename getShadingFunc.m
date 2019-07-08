@@ -5,7 +5,7 @@ maxLen4 = -1; maxArea4 = -1; minRatio4 = -1;
 maxLen8 = -1; maxArea8 = -1; minRatio8 = -1;
 % 阈值和参数
 upThres = 8; downThres = 8; leftThres = 8; rightThres = 8; 
-lenThres4 = 6; lenThres8 = 4; lenThres16 = 3;
+lenThres4 = 4; lenThres8 = 3; lenThres16 = 3;
 [h, w] = size(data);
 data = data(upThres+1:end, :);
 data = data(1:end-downThres, :);
