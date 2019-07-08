@@ -189,7 +189,7 @@ if processMode == 1 % 单芯片模式
 		end
 	end
 	[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(ori, candidate, cr_mask, BPDetectionThres);
-	if label == 8 && maxCrowd >= 14 && BP_Num >= 100
+	if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
 		label = 7;
 	end
 	singleOutput = {single_filename(1:end-4), ['缺陷类型为: ', labelName{label}]};
@@ -276,7 +276,7 @@ elseif processMode == 2 % 单晶圆模式
 			end
 		end
 		[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(img, candidate, cr_mask, BPDetectionThres);
-		if label == 8 && maxCrowd >= 14 && BP_Num >= 100
+		if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
 			label = 7;
 		end
 		singleOutput = {filename(1:end-4), ['缺陷类型为: ', labelName{label}], '--------------------'};
@@ -398,7 +398,7 @@ elseif processMode == 3 % 多批次模式
 					end
 				end
 				[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(img, candidate, cr_mask, BPDetectionThres);
-				if label == 8 && maxCrowd >= 14 && BP_Num >= 100
+				if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
 					label = 7;
 				end
 				mask = cr_mask | spot_mask | is_mask | bp_mask;

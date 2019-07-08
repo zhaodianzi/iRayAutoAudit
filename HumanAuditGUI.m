@@ -65,6 +65,7 @@ set(handles.DefectMenu, 'value', labelArr(label));
 set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
 % 左侧
 axes(handles.LeftDisplayArea);
+cla reset;
 imshow(ori3sig, []);
 if label < 8
 	hold on;
@@ -157,7 +158,7 @@ for i = 1 : length(oriDataList)
 		flag(i) = 1;
 	end
 end
-% oriDataList = oriDataList(flag);  % 只留下正常，待修改
+oriDataList = oriDataList(flag == 1);  % 只留下正常，待修改
 if ishandle(hWait)
 	close(hWait); delete(hWait);
 end
