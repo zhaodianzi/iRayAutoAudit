@@ -147,8 +147,9 @@ for k1 = 1 : totalBatchNum
 		hWait = waitbar(k1 / totalBatchNum, ['已加载', num2str(k1), '/', num2str(totalBatchNum), '个批次，请稍等']);
 	end
 end
-[~, ~, labelList] = xlsread(DRfile, 1, sprintf('A2:B%d', xlsRowNum));
-nameList = labelList(:, 1);
+[~, ~, rawList] = xlsread(DRfile, 1, sprintf('A2:B%d', xlsRowNum));
+nameList = rawList(:, 1);
+labelList = rawList(:, 2);
 flag = zeros(length(oriDataList), 1);
 for i = 1 : length(oriDataList)
 	oriDataList(i).label = labelList{strcmp(nameList, oriDataList(i).ID)};
