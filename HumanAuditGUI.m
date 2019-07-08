@@ -17,12 +17,13 @@ else
 end
 
 function HumanAuditGUI_OpeningFcn(hObject, eventdata, handles, varargin)
-global humanAuditDone ODpath DRfile CPpath chipType presentNum oriDataList totalNum wrongList
+global humanAuditDone ODpath DRfile CPpath chipType presentNum oriDataList totalNum wrongList mode
 humanAuditDone = -1;
 presentNum = 1;
 set(handles.PrevDataButton, 'Enable', 'off');
 set(handles.NextDataButton, 'Enable', 'on');
-if isempty(varargin) % 离线
+if length(varargin) < 5 % 离线
+	mode = varargin{1};
 	[flag, ODpath, DRfile, CPpath, chipType] = ChoosePathGUI();
 	if flag == 1
 		oriDataList = getOriDataList();
@@ -35,6 +36,7 @@ else % 在线
 	ODpath = varargin{2};
 	DRfile = varargin{3};
 	oriDataList = varargin{4};
+	mode = varargin{5};
 	flag = zeros(length(oriDataList), 1);
 	for i = 1 : length(oriDataList)
 		if oriDataList(i).label == 8
@@ -77,7 +79,7 @@ set(handles.LeftDisplayArea, 'xTick', []);
 set(handles.LeftDisplayArea, 'ytick', []);
 
 function [oriDataList] = getOriDataList()
-global ODpath DRfile CPpath chipType
+global ODpath DRfile CPpath chipType mode
 if exist('CPpath', 'var') && ~isempty(CPpath)
 	useCPfile = 1;
 else
@@ -154,11 +156,17 @@ labelList = rawList(:, 2);
 flag = zeros(length(oriDataList), 1);
 for i = 1 : length(oriDataList)
 	oriDataList(i).label = labelList{strcmp(nameList, oriDataList(i).ID)};
-	if oriDataList(i).label == 8
-		flag(i) = 1;
+	if mode == 1
+		if oriDataList(i).label == 8
+			flag(i) = 1;
+		end
+	else
+		if oriDataList(i).label ~= 8
+			flag(i) = 1;
+		end
 	end
 end
-oriDataList = oriDataList(flag == 1);  % 只留下正常，待修改
+oriDataList = oriDataList(flag == 1);
 if ishandle(hWait)
 	close(hWait); delete(hWait);
 end

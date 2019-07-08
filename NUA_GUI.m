@@ -596,13 +596,22 @@ global processMode;
 processMode = 3;
 uiBatchInit(handles);
 
-function HumanAudit_Callback(hObject, eventdata, handles)
+function HumanAuditNormal_Callback(hObject, eventdata, handles)
 global processMode detectionDone reportFileName oriDataList
 if processMode > 1 && detectionDone == 1
 	ODpath = get(handles.filepathText, 'String');
-	HumanAuditGUI('CALLBACK', ODpath, reportFileName, oriDataList);
+	HumanAuditGUI('CALLBACK', ODpath, reportFileName, oriDataList, 1);
 else
-	HumanAuditGUI();
+	HumanAuditGUI(1);
+end
+
+function HumanAuditBad_Callback(hObject, eventdata, handles)
+global processMode detectionDone reportFileName oriDataList
+if processMode > 1 && detectionDone == 1
+	ODpath = get(handles.filepathText, 'String');
+	HumanAuditGUI('CALLBACK', ODpath, reportFileName, oriDataList, 0);
+else
+	HumanAuditGUI(0);
 end
 
 function SaveResCheckBox_Callback(hObject, eventdata, handles)
@@ -713,3 +722,5 @@ function BSDetectionThres1_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 	set(hObject,'BackgroundColor','white');
 end
+
+function HumanAudit_Callback(hObject, eventdata, handles)
