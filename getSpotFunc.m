@@ -17,8 +17,6 @@ data = data(upThres+1:end, :);
 data = data(1:end-downThres, :);
 data = data(:, leftThres+1:end);
 data = data(:, 1:end-rightThres);
-
-% data = data - avrData;
 data = verticalStripeSuppression(data);
 data = horizontalStripeSuppression(data);
 NUA = removeNUA(data);

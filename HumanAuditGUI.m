@@ -17,7 +17,7 @@ else
 end
 
 function HumanAuditGUI_OpeningFcn(hObject, eventdata, handles, varargin)
-global humanAuditDone ODpath DRfile CPpath chipType presentNum oriDataList totalNum wrongList mode
+global humanAuditDone ODpath DRfile CPpath chipType presentNum dataList totalNum wrongList mode
 humanAuditDone = -1;
 presentNum = 1;
 set(handles.PrevDataButton, 'Enable', 'off');
@@ -26,7 +26,7 @@ if length(varargin) < 5 % 离线
 	mode = varargin{1};
 	[flag, ODpath, DRfile, CPpath, chipType] = ChoosePathGUI();
 	if flag == 1
-		oriDataList = getOriDataList();
+		dataList = getDataList();
 		updatePresentInfo(handles);
 	else
 		HumanAuditGUI_CloseRequestFcn(hObject, eventdata, handles);
@@ -35,35 +35,42 @@ if length(varargin) < 5 % 离线
 else % 在线
 	ODpath = varargin{2};
 	DRfile = varargin{3};
-	oriDataList = varargin{4};
+	dataList = varargin{4};
 	mode = varargin{5};
-	flag = zeros(length(oriDataList), 1);
-	for i = 1 : length(oriDataList)
-		if oriDataList(i).label == 8
-			flag(i) = 1;
+	flag = zeros(length(dataList), 1);
+	for i = 1 : length(dataList)
+		if mode == 1
+			if dataList(i).label == 8
+				flag(i) = 1;
+			end
+		else
+			if dataList(i).label ~= 8
+				flag(i) = 1;
+			end
 		end
 	end
-	oriDataList = oriDataList(flag == 1);  % 只留下正常，待修改
+	dataList = dataList(flag == 1);  % 只留下正常，待修改
 	updatePresentInfo(handles);
 end
-totalNum = length(oriDataList);
+totalNum = length(dataList);
 wrongList = zeros(totalNum, 1);
 set(handles.totalNumText, 'string', ['/ ', num2str(totalNum)]);
 handles.output = hObject;
 guidata(hObject, handles);
 
 function [] = updatePresentInfo(handles)
-global oriDataList presentNum ori3sig mask
+global dataList presentNum ori3sig mask
 startCol = 5; startRow = 9;
 height = 512; width = 640;
-[~, ori3sig] = loadData(oriDataList(presentNum).oriDataPath, height, width, startRow, startCol);
-mask = imread(oriDataList(presentNum).maskPath);
-set(handles.ChipID, 'string', oriDataList(presentNum).ID);
+[~, ori3sig] = loadData(dataList(presentNum).oriDataPath, height, width, startRow, startCol);
+mask = imread(dataList(presentNum).maskPath);
+set(handles.ChipID, 'string', dataList(presentNum).ID);
 set(handles.presentNumEdit, 'string', num2str(presentNum));
-label = oriDataList(presentNum).label;
+label = dataList(presentNum).label;
 defectName = {'坏列', '坏行', '柱状坏列', '斑块', '斜纹', '底纹', '其他', '正常'};
 labelArr = [1,1,1,2,3,4,5,6];
 set(handles.DefectMenu, 'value', labelArr(label));
+% set(handles.DefaultLevelText, 'string', ['人工判定: ', num2str(dataList(presentNum).humanLabel)]);
 set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
 % 左侧
 axes(handles.LeftDisplayArea);
@@ -71,21 +78,21 @@ cla reset;
 imshow(ori3sig, []);
 if label < 8
 	hold on;
-	Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+	Lrgb = label2rgb(mask, 'spring', 'k', 'shuffle');
 	himage = imshow(Lrgb);
 	set(himage, 'AlphaData', 0.2);
 end
 set(handles.LeftDisplayArea, 'xTick', []);
 set(handles.LeftDisplayArea, 'ytick', []);
 
-function [oriDataList] = getOriDataList()
+function [dataList] = getDataList()
 global ODpath DRfile CPpath chipType mode
 if exist('CPpath', 'var') && ~isempty(CPpath)
 	useCPfile = 1;
 else
 	useCPfile = 0;
 end
-oriDataList = [];
+dataList = [];
 subpathList = dir(ODpath); % 批次文件夹列表
 xlsRowNum = 1;
 if length(subpathList) < 3
@@ -122,7 +129,10 @@ for k1 = 1 : totalBatchNum
 			waferName = subsubpathName;
 		end
 		if useCPfile == 1
-			CPmap = checkCP([CPpath, '\611FPA-Report-', waferName, '.xls'], chipType);
+			CPFileName = [CPpath, '\611FPA-Report-', waferName, '.xls'];
+			CPmap = checkCP(CPFileName, chipType);
+% 			AuditFileName = [ODpath, '\', subpathName, '\', waferName, '_Audit.xls'];
+% 			humanAuditMap = getHumanAudit(AuditFileName, 2, chipType);
 		end
 		dataNum = length(fileList);
 		for k3 = 1 : dataNum
@@ -133,6 +143,11 @@ for k1 = 1 : totalBatchNum
 				if CPmap(row, col) == 0
 					continue;
 				end
+% 				auditLevel = humanAuditMap(row, col);
+% 				if auditLevel == 0
+% 					continue;
+% 				end
+% 				dataItem.humanLabel = auditLevel;
 			end
 			xlsRowNum = xlsRowNum + 1;
 			maskPath = [outputFolder, filename(1:end-4), '.png'];  % die文件名
@@ -141,7 +156,7 @@ for k1 = 1 : totalBatchNum
 			dataItem.maskPath = maskPath;
 			dataItem.oriDataPath = fullpath;
 			dataItem.ID = ID;
-			oriDataList = [oriDataList; dataItem];
+			dataList = [dataList; dataItem];
 		end
 	end
 	if ishandle(hWait)
@@ -153,20 +168,20 @@ end
 [~, ~, rawList] = xlsread(DRfile, 1, sprintf('A2:B%d', xlsRowNum));
 nameList = rawList(:, 1);
 labelList = rawList(:, 2);
-flag = zeros(length(oriDataList), 1);
-for i = 1 : length(oriDataList)
-	oriDataList(i).label = labelList{strcmp(nameList, oriDataList(i).ID)};
+flag = zeros(length(dataList), 1);
+for i = 1 : length(dataList)
+	dataList(i).label = labelList{strcmp(nameList, dataList(i).ID)};
 	if mode == 1
-		if oriDataList(i).label == 8
+		if dataList(i).label == 8
 			flag(i) = 1;
 		end
 	else
-		if oriDataList(i).label ~= 8
+		if dataList(i).label ~= 8
 			flag(i) = 1;
 		end
 	end
 end
-oriDataList = oriDataList(flag == 1);
+dataList = dataList(flag == 1);
 if ishandle(hWait)
 	close(hWait); delete(hWait);
 end
@@ -216,7 +231,8 @@ presentNum = presentNum - 1;
 if presentNum <= totalNum && presentNum >= 1
 	updatePresentInfo(handles);
 end
-if presentNum == 1
+if presentNum <= 1
+	presentNum = 1;
 	set(handles.PrevDataButton, 'Enable', 'off');
 end
 if presentNum < totalNum
@@ -233,7 +249,8 @@ end
 if presentNum > 1
 	set(handles.PrevDataButton, 'Enable', 'on');
 end
-if presentNum == totalNum
+if presentNum >= totalNum
+	presentNum = totalNum;
 	set(handles.NextDataButton, 'Enable', 'off');
 end
 
@@ -266,7 +283,7 @@ function showResButton_Callback(hObject, eventdata, handles)
 global ori3sig mask
 axes(handles.LeftDisplayArea);
 imshow(ori3sig, []); hold on;
-Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+Lrgb = label2rgb(mask, 'spring', 'k', 'shuffle');
 himage = imshow(Lrgb);
 set(himage, 'AlphaData', 0.2);
 set(handles.LeftDisplayArea, 'xTick', []);
@@ -301,10 +318,20 @@ else
 end
 
 function printWrongListButton_Callback(hObject, eventdata, handles)
-global totalNum wrongList oriDataList
+global totalNum wrongList dataList
 fprintf('以下芯片存在缺陷漏检: \n');
 for i = 1 : totalNum
 	if wrongList(i) == 1
-		fprintf('%s\n', oriDataList(i).ID);
+		fprintf('%s\n', dataList(i).ID);
 	end
+end
+
+function QuickJumpButton_Callback(hObject, eventdata, handles)
+global totalNum presentNum
+num = str2num(get(handles.presentNumEdit, 'string'));
+if num == fix(num) && num >= 1 && num <= totalNum
+	presentNum = num;
+	updatePresentInfo(handles);
+else
+	errordlg('输入序号不合法！', '出错');
 end

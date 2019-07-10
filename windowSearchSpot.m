@@ -1,5 +1,4 @@
 function [mask, flag, depth] = windowSearchSpot(img, winSize, edgeThres, magThres, denseThres)
-% magThres = 5;
 [h, w] = size(img);
 hh = h - winSize + 1;
 ww = w - winSize + 1;
@@ -47,13 +46,16 @@ for t = 1 : num
 % 	end
 % 	myK = abs((img(i, j) - avr) / sig);
 	if img(i, j) > magThres %img(i, j) > avr + k * sig && 
-		if (img(i,j) / magThres < 1.2 && abs(min(box(:)) / img(i,j)) > 0.6) ...
-				|| max(box(:)) > img(i,j)
+		if (img(i,j) / magThres < 1.2 && abs(min(box(:)) / img(i,j)) > 0.5) ...
+				|| (max(box(:)) > img(i,j)) %|| (img(i,j) / magThres < 1.05)
+			continue;
+		end
+		if (img(i,j) / magThres < 1.2) && (i <= edgeThres || i > h - edgeThres || j <= edgeThres || j > w - edgeThres)
 			continue;
 		end
 		st = [sum(Ix2(index(:))), sum(Ixy(index(:))); sum(Ixy(index(:))), sum(Iy2(index(:)))];
 		lam = eig(st);
-		if max(lam) > 0 && max(lam) / min(lam) > 2
+		if max(lam) > 0 && max(lam) / min(lam) > 3
 			continue;
 		end
 		flag = 1;
@@ -93,8 +95,11 @@ for t = 1 : num
 % 		k = kTimes;
 % 	end
 	if img(i, j) < -magThres %&& img(i, j) < avr - k * sig
-		if (-img(i,j) / magThres < 1.2 && abs(max(box(:)) / img(i,j)) > 0.6) ...
-				|| min(box(:)) < img(i,j)
+		if (-img(i,j) / magThres < 1.2 && abs(max(box(:)) / img(i,j)) > 0.5) ...
+				|| (min(box(:)) < img(i,j)) %|| (-img(i,j) / magThres < 1.05) 
+			continue;
+		end
+		if (-img(i,j) / magThres < 1.2) && (i <= edgeThres || i > h - edgeThres || j <= edgeThres || j > w - edgeThres)
 			continue;
 		end
 		st = [sum(Ix2(index(:))), sum(Ixy(index(:))); sum(Ixy(index(:))), sum(Iy2(index(:)))];

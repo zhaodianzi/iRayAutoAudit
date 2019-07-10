@@ -184,7 +184,7 @@ if processMode == 1 % 单芯片模式
 			[label] = getSlopingFunc(single_filename(1:end-4)); % 斜纹
 			if label == -1
 				[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-					maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(img3sig); % 底纹和正常
+					maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
 			end
 		end
 	end
@@ -207,7 +207,7 @@ if processMode == 1 % 单芯片模式
 	axes(handles.displayAxes1);
 	ave = mean(ori(:)); sigma = std(ori(:));
 	imagesc(ori, [ave - 3 * sigma, ave + 3 * sigma]); colormap('gray'), hold on;
-	Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+	Lrgb = label2rgb(mask, 'spring', 'k', 'shuffle');
 	himage = imshow(Lrgb);
 	set(himage, 'AlphaData', 0.2);
 elseif processMode == 2 % 单晶圆模式
@@ -271,7 +271,7 @@ elseif processMode == 2 % 单晶圆模式
 				[label] = getSlopingFunc(filename(1:end-4)); % 斜纹
 				if label == -1
 					[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-						maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(img3sig); % 底纹和正常
+						maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
 				end
 			end
 		end
@@ -393,7 +393,7 @@ elseif processMode == 3 % 多批次模式
 						[label] = getSlopingFunc(filename(1:end-4)); % 斜纹
 						if label == -1
 							[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-								maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(img3sig); % 底纹和正常
+								maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
 						end
 					end
 				end
@@ -484,7 +484,7 @@ if detectionDone
 	% 	sigma = std(img(:));
 	imshow(img, []); hold on;
 	% 	imagesc(img, [ave - 3 * sigma, ave + 3 * sigma]); colormap('gray'), hold on;
-	Lrgb = label2rgb(mask, 'jet', 'w', 'shuffle');
+	Lrgb = label2rgb(mask, 'spring', 'k', 'shuffle');
 	himage = imshow(Lrgb);
 	set(himage, 'AlphaData', 0.2);
 	set(handles.displayAxes1, 'xTick', []);

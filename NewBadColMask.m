@@ -1,11 +1,10 @@
 function [mask, colIndex, rowIndex] = NewBadColMask(img, BCDetectionThres)
-lenThres = 15;
-% BCDetectionThres = 4;
+lenThres = 9;
 [h, w] = size(img);
 mask = zeros(h, w);
 win = 20;
 edgeThreshold = 3;
-kTimesPixel = BCDetectionThres * 2 / 3;
+kTimesPixel = BCDetectionThres / 2;
 
 colS = sum(img, 1);
 % smcolS = floess(colS, 0.1);
