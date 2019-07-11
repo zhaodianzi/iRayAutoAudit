@@ -23,7 +23,7 @@ data8 = imresize(img, 1 / 8);
 [edge8, edgeThres8] = edge(data8, 'sobel');
 [mask8, stopFlag8] = getDownMask(edge8, lenThres8);
 if stopFlag8 == 0
-	[mark4, edgeFlag4, maxLen4, maxArea4, maxSlope4, minSlope4, maxRatio4, minRatio4] = getMaxLen(edge4 .* mask8, lenThres4);
+	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4 .* mask8, lenThres4);
 	if edgeFlag4 == 1
 		flag = 1;
 		mask = resizeMask(mark4, 4);
@@ -34,7 +34,7 @@ data16 = imresize(img, 1 / 16);
 [edge16, edgeThres16] = edge(data16, 'sobel');
 [mask16, stopFlag16] = getDownMask(edge16, lenThres16);
 if stopFlag16 == 0
-	[mark8, edgeFlag8, maxLen8, maxArea8, maxSlope8, minSlope8, maxRatio8, minRatio8] = getMaxLen(edge8 .* mask16, lenThres8);
+	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8 .* mask16, lenThres8);
 	if edgeFlag8 == 1
 		flag = 1;
 		mask = resizeMask(mark8, 8);
@@ -42,7 +42,7 @@ if stopFlag16 == 0
 end
 
 if stopFlag8 == 1 && stopFlag16 == 1
-	[mark4, edgeFlag4, maxLen4, maxArea4, maxSlope4, minSlope4, maxRatio4, minRatio4] = getMaxLen(edge4, 8);
+	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4, 8);
 	if edgeFlag4 == 1
 		flag = 1;
 		mask = resizeMask(mark4, 4);

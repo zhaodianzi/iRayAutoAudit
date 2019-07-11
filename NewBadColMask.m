@@ -3,8 +3,8 @@ lenThres = 9;
 [h, w] = size(img);
 mask = zeros(h, w);
 win = 20;
-edgeThreshold = 3;
-kTimesPixel = BCDetectionThres / 2;
+edgeThreshold = 4;
+kTimesPixel = BCDetectionThres * 0.6;
 
 colS = sum(img, 1);
 % smcolS = floess(colS, 0.1);
@@ -54,7 +54,7 @@ for i = 1 + edgeThreshold : w - edgeThreshold
 	if preLen > maxLen
 		maxLen = preLen;
 	end
-	if sum(flag) >= h * 0.4
+	if sum(flag) >= h * 0.5
 		flag = ones(h, 1);
 		maskCol(i) = token;
 		mask(:, i) = flag;

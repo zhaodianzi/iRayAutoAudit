@@ -70,8 +70,8 @@ label = dataList(presentNum).label;
 defectName = {'坏列', '坏行', '柱状坏列', '斑块', '斜纹', '底纹', '其他', '正常'};
 labelArr = [1,1,1,2,3,4,5,6];
 set(handles.DefectMenu, 'value', labelArr(label));
-% set(handles.DefaultLevelText, 'string', ['人工判定: ', num2str(dataList(presentNum).humanLabel)]);
-set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
+set(handles.DefaultLevelText, 'string', ['人工判定: ', num2str(dataList(presentNum).humanLabel)]);
+% set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
 % 左侧
 axes(handles.LeftDisplayArea);
 cla reset;

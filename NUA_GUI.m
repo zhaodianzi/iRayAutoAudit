@@ -358,6 +358,8 @@ elseif processMode == 3 % 多批次模式
 			if useCPfile == 1
 				CPFileName = [CPpath, '\611FPA-Report-', waferName, '.xls'];
 				CPmap = checkCP(CPFileName, chipType);
+				AuditFileName = [filepath, '\', subpathName, '\', waferName, '_Audit.xls'];
+				humanAuditMap = getHumanAudit(AuditFileName, 2, chipType);
 			end
 			if saveRes % 创建检测结果图片文件夹
 				outputFolder = [filepath, '\', subpathName, '\', subsubpathName, '测试结果\'];
@@ -377,6 +379,8 @@ elseif processMode == 3 % 多批次模式
 					if CPmap(row, col) == 0
 						continue;
 					end
+					auditLevel = humanAuditMap(row, col);
+					dataItem.humanLabel = auditLevel;
 				end
 				% 输出项初始化
 				A_spot = -1; maxSpotScale = -1; maxSpotDepth = -1;

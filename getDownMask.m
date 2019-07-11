@@ -13,7 +13,7 @@ for k = 1 : snum
 	index = find(mark(:) == k);
 	rows = max(r) - min(r) + 1;
 	cols = max(c) - min(c) + 1;
-	slope = rows / cols;
+% 	slope = rows / cols;
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;

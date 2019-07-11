@@ -1,4 +1,4 @@
-function [mark, flag, maxLen, maxArea, maxSlope, minSlope, maxRatio, minRatio] = getMaxLen(ed, lenThres)
+function [mark, flag, maxLen, maxArea, minRatio] = getMaxLen(ed, lenThres)
 edgeThres = 2;
 ed(1:edgeThres, :) = 0;
 ed(end-edgeThres+1:end, :) = 0;
@@ -11,7 +11,6 @@ for k = 1 : snum
 	index = find(mark(:) == k);
 	rows = max(r) - min(r) + 1;
 	cols = max(c) - min(c) + 1;
-	slope = rows / cols;
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;
@@ -27,20 +26,17 @@ if sum(mark(:)) > 0
 else
 	flag = 0;
 end
-maxSlope = -1; minSlope = -1;
-maxRatio = -1; minRatio = -1;
+minRatio = -1;
 maxLen = -1; maxArea = -1;
 if sum(mark(:)) > 0
 	maxLen = -1; maxArea = -1;
-	maxSlope = -1; minSlope = 1000;
-	maxRatio = -1; minRatio = 1000;
+	minRatio = 1000;
 	[mark, snum] = bwlabel(mark, 8);
 	for k = 1 : snum
 		[r,c] = find(mark == k);
 		index = find(mark(:) == k);
 		rows = max(r) - min(r) + 1;
 		cols = max(c) - min(c) + 1;
-		slope = rows / cols;
 		len = length(index);
 		area = rows * cols;
 		ratio = len / area;
@@ -49,15 +45,6 @@ if sum(mark(:)) > 0
 		end
 		if area > maxArea
 			maxArea = area;
-		end
-		if slope > maxSlope
-			maxSlope = slope;
-		end
-		if slope < minSlope
-			minSlope = slope;
-		end
-		if ratio > maxRatio
-			maxRatio = ratio;
 		end
 		if ratio < minRatio
 			minRatio = ratio;
