@@ -1,4 +1,4 @@
-function [mask, stopFlag] = getDownMask(ed, lenThres, ratioThres)
+function [mask, stopFlag, maxLen] = getDownMask(ed, lenThres, ratioThres)
 edgeThres = 2;
 [h, w] = size(ed);
 mask = zeros(h*2, w*2);
@@ -8,6 +8,7 @@ mask = zeros(h*2, w*2);
 % ed(:, end-edgeThres+1:end) = 0;
 [mark, snum] = bwlabel(ed, 8);
 kThres = lenThres / 3 * 2;
+maxLen = -1; 
 for k = 1 : snum
 	[r,c] = find(mark == k);
 	index = find(mark(:) == k);
@@ -16,14 +17,15 @@ for k = 1 : snum
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;
-	if rows <= 1 || cols <= 1 || len < lenThres ...
-		|| (ratio > ratioThres) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
-		|| ((rows < 3 || cols < 3) && len < 4)
+	if len < lenThres || (rows > 1 && cols > 1 && ratio > ratioThres) || (rows > 3 && cols > 3 && ratio > 0.5)
 		mark(index) = 0;
+	end
+	if len > maxLen
+		maxLen = len;
 	end
 end
 
-win = 1;
+win = 2;
 [rh, rw] = size(mark);
 rMask = zeros(rh, rw);
 for i = 1 : rh

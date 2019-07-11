@@ -13,9 +13,7 @@ for k = 1 : snum
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;
-	if rows <= 1 || cols <= 1 || len < lenThres ...
-		|| (ratio > ratioThres) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
-		|| ((rows < 3 || cols < 3) && len < 4)
+	if len < lenThres || (rows > 1 && cols > 1 && ratio > ratioThres) || (rows > 3 && cols > 3 && ratio > 0.5)
 		mark(index) = 0;
 	end
 end

@@ -18,11 +18,25 @@ img = removeNUA(data);
 flag = 0;
 data4 = imresize(img, 1 / 4);
 [edge4, edgeThres4] = edge(data4, 'sobel');
+[mask4, mstopFlag4, maxLen4] = getDownMask(edge4, lenThres4, ISDetectionThres);
+if maxLen4 >= 6
+	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4, lenThres4, ISDetectionThres);
+	if edgeFlag4 == 1
+		flag = 1;
+		mask = resizeMask(mark4, 4);
+	end
+end
 
 data8 = imresize(img, 1 / 8);
 [edge8, edgeThres8] = edge(data8, 'sobel');
-[mask8, stopFlag8] = getDownMask(edge8, lenThres8, ISDetectionThres);
-if stopFlag8 == 0
+[mask8, stopFlag8, maxLen8] = getDownMask(edge8, lenThres8, ISDetectionThres);
+if maxLen8 >= 6
+	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8, lenThres8, ISDetectionThres);
+	if edgeFlag8 == 1
+		flag = 1;
+		mask = resizeMask(mark8, 8);
+	end
+elseif stopFlag8 == 0
 	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4 .* mask8, lenThres4, ISDetectionThres);
 	if edgeFlag4 == 1
 		flag = 1;
@@ -48,6 +62,13 @@ if stopFlag8 == 1 && stopFlag16 == 1
 		mask = resizeMask(mark4, 4);
 	end
 end
+% if stopFlag4 == 1 && stopFlag16 == 1
+% 	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8, lenThres8, ISDetectionThres);
+% 	if edgeFlag8 == 1
+% 		flag = 1;
+% 		mask = resizeMask(mark8, 8);
+% 	end
+% end
 if flag == 1
 	label = 6;
 	mask = padarray(mask, [8, 8], 0, 'both');
