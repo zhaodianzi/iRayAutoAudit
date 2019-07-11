@@ -5,6 +5,8 @@ ed(end-edgeThres+1:end, :) = 0;
 ed(:, 1:edgeThres) = 0;
 ed(:, end-edgeThres+1:end) = 0;
 [mark, snum] = bwlabel(ed, 8);
+edgeThres = 5;
+[h, w] = size(ed);
 for k = 1 : snum
 	[r,c] = find(mark == k);
 	index = find(mark(:) == k);
@@ -13,7 +15,11 @@ for k = 1 : snum
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;
-	if len < lenThres || (rows > 1 && cols > 1 && ratio > ratioThres) || (rows > 3 && cols > 3 && ratio > 0.5)
+	if len < lenThres || (rows > 1 && cols > 1 && ratio > ratioThres) ...
+			|| (rows >= 3 && cols >= 3 && ratio > 0.5) ...
+			|| (cols == 1 && (max(c) > w - edgeThres || min(c) <= edgeThres)) ...
+			|| (rows == 1 && (max(r) > h - edgeThres || min(r) <= edgeThres)) ...
+			|| ((rows == 2 || cols == 2) && len < 4)
 		mark(index) = 0;
 	end
 end
