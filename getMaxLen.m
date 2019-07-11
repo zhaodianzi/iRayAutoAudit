@@ -1,11 +1,10 @@
-function [mark, flag, maxLen, maxArea, minRatio] = getMaxLen(ed, lenThres)
+function [mark, flag, maxLen, maxArea, minRatio] = getMaxLen(ed, lenThres, ratioThres)
 edgeThres = 2;
 ed(1:edgeThres, :) = 0;
 ed(end-edgeThres+1:end, :) = 0;
 ed(:, 1:edgeThres) = 0;
 ed(:, end-edgeThres+1:end) = 0;
 [mark, snum] = bwlabel(ed, 8);
-kThres = min(lenThres / 3 * 2, 5);
 for k = 1 : snum
 	[r,c] = find(mark == k);
 	index = find(mark(:) == k);
@@ -15,7 +14,7 @@ for k = 1 : snum
 	area = rows * cols;
 	ratio = len / area;
 	if rows <= 1 || cols <= 1 || len < lenThres ...
-		|| (ratio > 0.6) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
+		|| (ratio > ratioThres) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
 		|| ((rows < 3 || cols < 3) && len < 4)
 		mark(index) = 0;
 	end

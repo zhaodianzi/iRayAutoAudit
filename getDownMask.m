@@ -1,4 +1,4 @@
-function [mask, stopFlag] = getDownMask(ed, lenThres)
+function [mask, stopFlag] = getDownMask(ed, lenThres, ratioThres)
 edgeThres = 2;
 [h, w] = size(ed);
 mask = zeros(h*2, w*2);
@@ -13,12 +13,11 @@ for k = 1 : snum
 	index = find(mark(:) == k);
 	rows = max(r) - min(r) + 1;
 	cols = max(c) - min(c) + 1;
-% 	slope = rows / cols;
 	len = length(index);
 	area = rows * cols;
 	ratio = len / area;
 	if rows <= 1 || cols <= 1 || len < lenThres ...
-		|| (ratio > 0.6) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
+		|| (ratio > ratioThres) || (rows >= 3 && cols >= 3 && ratio > 0.5) ...
 		|| ((rows < 3 || cols < 3) && len < 4)
 		mark(index) = 0;
 	end

@@ -141,14 +141,22 @@ function startDetectionButton_Callback(hObject, eventdata, handles)
 global single_filename ori ori3sig mask bp_mask cr_mask is_mask spot_mask processMode ...
 	centerCol centerRow windowRadius settingDone loadDone detectionDone ...
 	reportFileName oriDataList
+configFile = 'SlopingConfig.mat';
+if ~exist(configFile, 'file')
+	errordlg('斜纹配置文件不存在，请先进行配置！','错误');
+	return;
+end
+load(configFile);
 labelName = {'坏列', '坏行', '柱状坏列', '斑块', '斜纹', '底纹', '其他', '正常'};
 BPDetectionThres = str2double(get(handles.BPDetectionThres, 'string'));% 盲元检测阈值
 BCDetectionThres = str2double(get(handles.BCDetectionThres, 'string'));% 坏行坏列检测阈值
 BSDetectionThres4 = str2double(get(handles.BSDetectionThres4, 'string'));% 斑块1/8检测阈值
 BSDetectionThres3 = str2double(get(handles.BSDetectionThres3, 'string'));% 斑块1/4检测阈值
 BSDetectionThres2 = str2double(get(handles.BSDetectionThres2, 'string'));% 斑块1/2检测阈值
-BSDetectionThres1 = str2double(get(handles.BSDetectionThres1, 'string'));% 斑块检测阈值
+BSDetectionThres1 = str2double(get(handles.BSDetectionThres1, 'string'));% 斑块原尺寸检测阈值
 BSDetectionThres = [BSDetectionThres4, BSDetectionThres3, BSDetectionThres2, BSDetectionThres1];
+BPNumberThres = 50; BPCrowdThres = 14;
+ISDetectionThres = str2double(get(handles.ISDetectionThres, 'string'));% 底纹检测阈值
 is_lambda = 0.008; bp_lambda = 0.08; tol = 1e-7; maxIter = 1000;
 startRow = str2double(get(handles.StartRowText, 'string'));
 startCol = str2double(get(handles.StartColText, 'string'));
@@ -181,15 +189,15 @@ if processMode == 1 % 单芯片模式
 	if label == -1
 		[label, spot_mask, maxSpotScale, maxSpotDepth, A_spot] = getSpotFunc(bg, BSDetectionThres); % 斑块
 		if label == -1
-			[label] = getSlopingFunc(single_filename(1:end-4)); % 斜纹
+			[label] = getSlopingFunc(single_filename(1:end-4), slopingFlag); % 斜纹
 			if label == -1
 				[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-					maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
+					maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg, ISDetectionThres); % 底纹和正常
 			end
 		end
 	end
 	[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(ori, candidate, cr_mask, BPDetectionThres);
-	if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
+	if label == 8 && (maxCrowd >= BPCrowdThres || BP_Num >= BPNumberThres)
 		label = 7;
 	end
 	singleOutput = {single_filename(1:end-4), ['缺陷类型为: ', labelName{label}]};
@@ -268,15 +276,15 @@ elseif processMode == 2 % 单晶圆模式
 		if label == -1
 			[label, spot_mask, maxSpotScale, maxSpotDepth, A_spot] = getSpotFunc(bg, BSDetectionThres); % 斑块
 			if label == -1
-				[label] = getSlopingFunc(filename(1:end-4)); % 斜纹
+				[label] = getSlopingFunc(filename(1:end-4), slopingFlag); % 斜纹
 				if label == -1
 					[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-						maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
+						maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg, ISDetectionThres); % 底纹和正常
 				end
 			end
 		end
 		[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(img, candidate, cr_mask, BPDetectionThres);
-		if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
+		if label == 8 && (maxCrowd >= BPCrowdThres || BP_Num >= BPNumberThres)
 			label = 7;
 		end
 		singleOutput = {filename(1:end-4), ['缺陷类型为: ', labelName{label}], '--------------------'};
@@ -394,15 +402,15 @@ elseif processMode == 3 % 多批次模式
 				if label == -1
 					[label, spot_mask, maxSpotScale, maxSpotDepth, A_spot] = getSpotFunc(bg, BSDetectionThres); % 斑块
 					if label == -1
-						[label] = getSlopingFunc(filename(1:end-4)); % 斜纹
+						[label] = getSlopingFunc(filename(1:end-4), slopingFlag); % 斜纹
 						if label == -1
 							[label, is_mask, maxLen4, maxArea4, minRatio4, ...
-								maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg); % 底纹和正常
+								maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(bg, ISDetectionThres); % 底纹和正常
 						end
 					end
 				end
 				[bp_mask, BP_Num, maxCrowd, A_BP_Num, A_maxCrowd] = getBlindPixelFunc(img, candidate, cr_mask, BPDetectionThres);
-				if label == 8 && (maxCrowd >= 14 || BP_Num >= 100)
+				if label == 8 && (maxCrowd >= BPCrowdThres || BP_Num >= BPNumberThres)
 					label = 7;
 				end
 				mask = cr_mask | spot_mask | is_mask | bp_mask;
@@ -455,7 +463,6 @@ elseif chipType == 3
 	totalRow = 8; totalCol = 7;
 end
 auditMap = cell(totalRow, totalCol);
-% auditMap = zeros(totalRow, totalCol) - 1;
 
 % 展示原图
 function showOriButton_Callback(hObject, eventdata, handles)
@@ -544,6 +551,10 @@ elseif flag == 0
 else
 	% 	fprintf('操作取消\n');
 end
+
+function SlopingSettingButton_Callback(hObject, eventdata, handles)
+chipType = get(handles.dataSizeMenu, 'value');
+PreSettingSlopingStripes('CALLBACK', chipType);
 
 %% 单芯片模式
 function SingleData_Callback(hObject, eventdata, handles)
@@ -728,3 +739,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 function HumanAudit_Callback(hObject, eventdata, handles)
+function ISDetectionThres_Callback(hObject, eventdata, handles)
+
+function ISDetectionThres_CreateFcn(hObject, eventdata, handles)
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

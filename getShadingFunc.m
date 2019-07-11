@@ -1,5 +1,5 @@
 function [label, mask, maxLen4, maxArea4, minRatio4, ...
-	maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(data)
+	maxLen8, maxArea8, minRatio8, A_shadow] = getShadingFunc(data, ISDetectionThres)
 % 输入为3sigma数据，输出各个尺度的参数
 maxLen4 = -1; maxArea4 = -1; minRatio4 = -1;
 maxLen8 = -1; maxArea8 = -1; minRatio8 = -1;
@@ -21,9 +21,9 @@ data4 = imresize(img, 1 / 4);
 
 data8 = imresize(img, 1 / 8);
 [edge8, edgeThres8] = edge(data8, 'sobel');
-[mask8, stopFlag8] = getDownMask(edge8, lenThres8);
+[mask8, stopFlag8] = getDownMask(edge8, lenThres8, ISDetectionThres);
 if stopFlag8 == 0
-	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4 .* mask8, lenThres4);
+	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4 .* mask8, lenThres4, ISDetectionThres);
 	if edgeFlag4 == 1
 		flag = 1;
 		mask = resizeMask(mark4, 4);
@@ -32,9 +32,9 @@ end
 
 data16 = imresize(img, 1 / 16);
 [edge16, edgeThres16] = edge(data16, 'sobel');
-[mask16, stopFlag16] = getDownMask(edge16, lenThres16);
+[mask16, stopFlag16] = getDownMask(edge16, lenThres16, ISDetectionThres);
 if stopFlag16 == 0
-	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8 .* mask16, lenThres8);
+	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8 .* mask16, lenThres8, ISDetectionThres);
 	if edgeFlag8 == 1
 		flag = 1;
 		mask = resizeMask(mark8, 8);
@@ -42,7 +42,7 @@ if stopFlag16 == 0
 end
 
 if stopFlag8 == 1 && stopFlag16 == 1
-	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4, 8);
+	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4, 8, ISDetectionThres);
 	if edgeFlag4 == 1
 		flag = 1;
 		mask = resizeMask(mark4, 4);
