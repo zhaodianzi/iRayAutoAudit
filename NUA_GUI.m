@@ -254,6 +254,7 @@ elseif processMode == 2 % 单晶圆模式
 	hWait = waitbar(0, '正在计算，请稍等');
 	xlsRowNum = 1;
 	auditMap = initEmptyAuditMap(chipType);
+	allReportRes = {};
 	for i = 1 : dataNum
 		filename = filelist(i).name;
 		fullpath = fullfile(filepath, filename);
@@ -308,7 +309,13 @@ elseif processMode == 2 % 单晶圆模式
 			par.maxSpotDepth = maxSpotDepth; par.A_shadow = A_shadow;
 			par.maxLen4 = maxLen4; par.maxArea4 = maxArea4; par.minRatio4 = minRatio4;
 			par.maxLen8 = maxLen8; par.maxArea8 = maxArea8; par.minRatio8 = minRatio8;
-			write2xls(par, xlsRowNum);
+			singleRes = {par.ID, par.label, par.BP_Num, par.maxCrowd, ...
+				par.A_BP_Num, par.A_maxCrowd, par.CR_Num, par.A_CR_Num, ...
+				par.A_spot,  par.maxSpotScale, par.maxSpotDepth, par.A_shadow, ...
+				par.maxLen4, par.maxArea4, par.minRatio4, ...
+				par.maxLen8, par.maxArea8, par.minRatio8};
+			allReportRes = [allReportRes; singleRes];
+% 			write2xls(par, xlsRowNum);
 		end
 		if ishandle(hWait)
 			waitbar(i / dataNum, hWait, ['已完成', num2str(i), '/' num2str(dataNum), '，请稍等']);
@@ -316,6 +323,7 @@ elseif processMode == 2 % 单晶圆模式
 			hWait = waitbar(i / dataNum, ['已完成', num2str(i), '/' num2str(dataNum), '，请稍等']);
 		end
 	end
+	xlswrite(par.resultFileName, allReportRes, 1, 'A2');
 	if ishandle(hWait)
 		close(hWait); delete(hWait);
 	end
@@ -348,6 +356,7 @@ elseif processMode == 3 % 多批次模式
 		par.settingDone = settingDone;
 		write2xls(par, 1);
 	end
+	allReportRes = {};
 	for k1 = 3 : length(subpathList)
 		subpathName = subpathList(k1).name; % 批次文件夹名
 		subsubpathList = dir([filepath, '\', subpathName]); % 晶圆文件夹列表
@@ -363,10 +372,14 @@ elseif processMode == 3 % 多批次模式
 			else
 				waferName = subsubpathName;
 			end
+			humanFlag = 0;
 			if useCPfile == 1
 				CPFileName = [CPpath, '\611FPA-Report-', waferName, '.xls'];
 				CPmap = checkCP(CPFileName, chipType);
-				AuditFileName = [filepath, '\', subpathName, '\', waferName, '_Audit.xls'];
+			end
+			AuditFileName = [filepath, '\', subpathName, '\', waferName, '_Audit.xls'];
+			if exist(AuditFileName,'file')
+				humanFlag = 1;
 				humanAuditMap = getHumanAudit(AuditFileName, 2, chipType);
 			end
 			if saveRes % 创建检测结果图片文件夹
@@ -387,8 +400,12 @@ elseif processMode == 3 % 多批次模式
 					if CPmap(row, col) == 0
 						continue;
 					end
+				end
+				if humanFlag == 1
 					auditLevel = humanAuditMap(row, col);
 					dataItem.humanLabel = auditLevel;
+				else
+					dataItem.humanLabel = 0;
 				end
 				% 输出项初始化
 				A_spot = -1; maxSpotScale = -1; maxSpotDepth = -1;
@@ -427,7 +444,13 @@ elseif processMode == 3 % 多批次模式
 					par.maxSpotDepth = maxSpotDepth; par.A_shadow = A_shadow;
 					par.maxLen4 = maxLen4; par.maxArea4 = maxArea4; par.minRatio4 = minRatio4;
 					par.maxLen8 = maxLen8; par.maxArea8 = maxArea8; par.minRatio8 = minRatio8;
-					write2xls(par, xlsRowNum);
+% 					write2xls(par, xlsRowNum);
+					singleRes = {par.ID, par.label, par.BP_Num, par.maxCrowd, ...
+						par.A_BP_Num, par.A_maxCrowd, par.CR_Num, par.A_CR_Num, ...
+						par.A_spot,  par.maxSpotScale, par.maxSpotDepth, par.A_shadow, ...
+						par.maxLen4, par.maxArea4, par.minRatio4, ...
+						par.maxLen8, par.maxArea8, par.minRatio8};
+					allReportRes = [allReportRes; singleRes];
 					dataItem.label = label;
 					dataItem.maskPath = maskName;
 					dataItem.oriDataPath = fullpath;
@@ -450,6 +473,7 @@ elseif processMode == 3 % 多批次模式
 			writeAuditFile(auditFileName, waferName, auditMap);
 		end
 	end
+	xlswrite(par.resultFileName, allReportRes, 1, 'A2');
 	set(handles.BatchOutputText, 'String', outputText);
 	detectionDone = 1;
 end
@@ -538,19 +562,19 @@ else
 	return;
 end
 
-% 设置检测窗口
-function enterDetectionWindowButton_Callback(hObject, eventdata, handles)
-global centerCol centerRow windowRadius settingDone
-[flag, X, Y, R] = DetectionWindowSetting(settingDone, centerCol, centerRow, windowRadius);
-if flag == 1
-	settingDone = 1;
-	centerCol = X; centerRow = Y; windowRadius = R;
-	% 	fprintf('X:%d, Y:%d, R:%f\n', centerCol, centerRow, windowRadius);
-elseif flag == 0
-	settingDone = 0;
-else
-	% 	fprintf('操作取消\n');
-end
+% % 设置检测窗口
+% function enterDetectionWindowButton_Callback(hObject, eventdata, handles)
+% global centerCol centerRow windowRadius settingDone
+% [flag, X, Y, R] = DetectionWindowSetting(settingDone, centerCol, centerRow, windowRadius);
+% if flag == 1
+% 	settingDone = 1;
+% 	centerCol = X; centerRow = Y; windowRadius = R;
+% 	% 	fprintf('X:%d, Y:%d, R:%f\n', centerCol, centerRow, windowRadius);
+% elseif flag == 0
+% 	settingDone = 0;
+% else
+% 	% 	fprintf('操作取消\n');
+% end
 
 function SlopingSettingButton_Callback(hObject, eventdata, handles)
 chipType = get(handles.dataSizeMenu, 'value');

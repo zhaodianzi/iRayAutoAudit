@@ -27,7 +27,6 @@ if length(varargin) < 5 % 离线
 	[flag, ODpath, DRfile, CPpath, chipType] = ChoosePathGUI();
 	if flag == 1
 		dataList = getDataList();
-		updatePresentInfo(handles);
 	else
 		HumanAuditGUI_CloseRequestFcn(hObject, eventdata, handles);
 		return;
@@ -50,16 +49,29 @@ else % 在线
 		end
 	end
 	dataList = dataList(flag == 1);  % 只留下正常，待修改
-	updatePresentInfo(handles);
+end
+if mode == 1
+	set(handles.wrongButton, 'string', '漏检');
+else
+	set(handles.wrongButton, 'string', '误判');
 end
 totalNum = length(dataList);
 wrongList = zeros(totalNum, 1);
 set(handles.totalNumText, 'string', ['/ ', num2str(totalNum)]);
+updatePresentInfo(handles);
 handles.output = hObject;
 guidata(hObject, handles);
 
 function [] = updatePresentInfo(handles)
-global dataList presentNum ori3sig mask
+global dataList presentNum ori3sig mask totalNum
+if presentNum <= 1
+	presentNum = 1;
+	set(handles.PrevDataButton, 'Enable', 'off');
+end
+if presentNum >= totalNum
+	presentNum = totalNum;
+	set(handles.NextDataButton, 'Enable', 'off');
+end
 startCol = 5; startRow = 9;
 height = 512; width = 640;
 [~, ori3sig] = loadData(dataList(presentNum).oriDataPath, height, width, startRow, startCol);
@@ -70,8 +82,12 @@ label = dataList(presentNum).label;
 defectName = {'坏列', '坏行', '柱状坏列', '斑块', '斜纹', '底纹', '其他', '正常'};
 labelArr = [1,1,1,2,3,4,5,6];
 set(handles.DefectMenu, 'value', labelArr(label));
-set(handles.DefaultLevelText, 'string', ['人工判定: ', num2str(dataList(presentNum).humanLabel)]);
-% set(handles.DefaultLevelText, 'string', ['程序判定: ', defectName{label}]);
+humanLabel = dataList(presentNum).humanLabel;
+if humanLabel == 0
+	set(handles.DefaultLevelText, 'string', ['无人工判定结果']);
+else
+	set(handles.DefaultLevelText, 'string', ['人工判定: ', num2str(humanLabel)]);
+end
 % 左侧
 axes(handles.LeftDisplayArea);
 cla reset;
@@ -128,11 +144,15 @@ for k1 = 1 : totalBatchNum
 		else
 			waferName = subsubpathName;
 		end
+		humanFlag = 0;
 		if useCPfile == 1
 			CPFileName = [CPpath, '\611FPA-Report-', waferName, '.xls'];
 			CPmap = checkCP(CPFileName, chipType);
-% 			AuditFileName = [ODpath, '\', subpathName, '\', waferName, '_Audit.xls'];
-% 			humanAuditMap = getHumanAudit(AuditFileName, 2, chipType);
+		end
+		AuditFileName = [ODpath, '\', subpathName, '\', waferName, '_Audit.xls'];
+		if exist(AuditFileName,'file')
+			humanFlag = 1;
+			humanAuditMap = getHumanAudit(AuditFileName, 2, chipType);
 		end
 		dataNum = length(fileList);
 		for k3 = 1 : dataNum
@@ -143,11 +163,12 @@ for k1 = 1 : totalBatchNum
 				if CPmap(row, col) == 0
 					continue;
 				end
-% 				auditLevel = humanAuditMap(row, col);
-% 				if auditLevel == 0
-% 					continue;
-% 				end
-% 				dataItem.humanLabel = auditLevel;
+			end
+			if humanFlag == 1
+				auditLevel = humanAuditMap(row, col);
+				dataItem.humanLabel = auditLevel;
+			else
+				dataItem.humanLabel = 0;
 			end
 			xlsRowNum = xlsRowNum + 1;
 			maskPath = [outputFolder, filename(1:end-4), '.png'];  % die文件名
@@ -170,13 +191,18 @@ nameList = rawList(:, 1);
 labelList = rawList(:, 2);
 flag = zeros(length(dataList), 1);
 for i = 1 : length(dataList)
-	dataList(i).label = labelList{strcmp(nameList, dataList(i).ID)};
+	temp = labelList{strcmp(nameList, dataList(i).ID)};
+	if ~isempty(temp)
+		dataList(i).label = temp;
+	else
+		dataList(i).label = 0;
+	end
 	if mode == 1
 		if dataList(i).label == 8
 			flag(i) = 1;
 		end
 	else
-		if dataList(i).label ~= 8
+		if dataList(i).label < 8 && dataList(i).label > 0
 			flag(i) = 1;
 		end
 	end
@@ -318,8 +344,12 @@ else
 end
 
 function printWrongListButton_Callback(hObject, eventdata, handles)
-global totalNum wrongList dataList
-fprintf('以下芯片存在缺陷漏检: \n');
+global totalNum wrongList dataList mode
+if mode == 1
+	fprintf('以下芯片存在漏检: \n');
+else
+	fprintf('以下芯片存在误判: \n');
+end
 for i = 1 : totalNum
 	if wrongList(i) == 1
 		fprintf('%s\n', dataList(i).ID);
@@ -329,7 +359,7 @@ end
 function QuickJumpButton_Callback(hObject, eventdata, handles)
 global totalNum presentNum
 num = str2num(get(handles.presentNumEdit, 'string'));
-if num == fix(num) && num >= 1 && num <= totalNum
+if ~isempty(num) && num == fix(num) && num >= 1 && num <= totalNum
 	presentNum = num;
 	updatePresentInfo(handles);
 else
