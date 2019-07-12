@@ -18,6 +18,7 @@ img = removeNUA(data);
 flag = 0;
 data4 = imresize(img, 1 / 4);
 [edge4, edgeThres4] = edge(data4, 'sobel');
+% [edge4, edgeThres4] = edge(data4, 'canny', [0.3, 0.4]);
 [mask4, mstopFlag4, maxLen4] = getDownMask(edge4, lenThres4, ISDetectionThres);
 % if maxLen4 >= 8
 % 	[mark4, edgeFlag4, maxLen4, maxArea4, minRatio4] = getMaxLen(edge4, lenThres4, ISDetectionThres);
@@ -29,6 +30,7 @@ data4 = imresize(img, 1 / 4);
 
 data8 = imresize(img, 1 / 8);
 [edge8, edgeThres8] = edge(data8, 'sobel');
+% [edge8, edgeThres8] = edge(data8, 'canny', [0.2, 0.3]);
 [mask8, stopFlag8, maxLen8] = getDownMask(edge8, lenThres8, ISDetectionThres);
 % if maxLen8 >= 6
 % 	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8, lenThres8, ISDetectionThres);
@@ -47,6 +49,7 @@ end
 
 data16 = imresize(img, 1 / 16);
 [edge16, edgeThres16] = edge(data16, 'sobel');
+% [edge16, edgeThres16] = edge(data16, 'canny', [0.15, 0.3]);
 [mask16, stopFlag16] = getDownMask(edge16, lenThres16, ISDetectionThres);
 if stopFlag16 == 0
 	[mark8, edgeFlag8, maxLen8, maxArea8, minRatio8] = getMaxLen(edge8 .* mask16, lenThres8, ISDetectionThres);

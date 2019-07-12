@@ -5,7 +5,7 @@ label = -1; maxSpotScale = -1; A_spot = -1;
 % magThres = 8;
 upThres = 8; downThres = 8; leftThres = 8; rightThres = 8;
 winSize = [8, 12, 20, 30]; % 判定窗口半径
-edgeThres = [3, 10, 12, 15]; % 窗口中心位置半径
+edgeThres = [3, 10, 12, 18]; % 窗口中心位置半径
 % magThres = [1.5, 4.2, 8, 12]; % 响应阈值
 magThres = BSDetectionThres;
 denseThres = [5, 5, 5, 5]; % 极值点筛选

@@ -43,7 +43,6 @@ for t = 1 : num
 	centerIndex = imgIndex(centertop:centerbottom, centerleft:centerright);
 	boxIndex = setdiff(index(:), centerIndex(:));
 	box = img(boxIndex);
-	
 	if (img(i,j) / magThres < ratio && abs(min(box(:)) / img(i,j)) > 0.5) ...
 			|| (max(box(:)) > img(i,j)) %|| (img(i,j) / magThres < 1.05)
 		continue;
@@ -51,9 +50,12 @@ for t = 1 : num
 	if (magThres < 6) && (img(i,j) / magThres < ratio) && (i <= edgeThres || i > h - edgeThres || j <= edgeThres || j > w - edgeThres)
 		continue;
 	end
+% 	if (i <= edgeThres || i > h - edgeThres) && (j <= edgeThres || j > w - edgeThres)
+% 		continue;
+% 	end
 	st = [sum(Ix2(index(:))), sum(Ixy(index(:))); sum(Ixy(index(:))), sum(Iy2(index(:)))];
 	lam = eig(st);
-	if max(lam) > 0 && max(lam) / min(lam) > 3.5
+	if max(lam) > 0 && max(lam) / min(lam) > 3
 		continue;
 	end
 	flag = 1;
@@ -89,6 +91,9 @@ for t = 1 : num
 	if (magThres < 6) && (-img(i,j) / magThres < ratio) && (i <= edgeThres || i > h - edgeThres || j <= edgeThres || j > w - edgeThres)
 		continue;
 	end
+% 	if (i <= edgeThres || i > h - edgeThres) && (j <= edgeThres || j > w - edgeThres)
+% 		continue;
+% 	end
 	st = [sum(Ix2(index(:))), sum(Ixy(index(:))); sum(Ixy(index(:))), sum(Iy2(index(:)))];
 	lam = eig(st);
 	if max(lam) > 0 && max(lam) / min(lam) > 3
