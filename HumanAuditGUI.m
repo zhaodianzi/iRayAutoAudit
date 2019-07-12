@@ -72,6 +72,12 @@ if presentNum >= totalNum
 	presentNum = totalNum;
 	set(handles.NextDataButton, 'Enable', 'off');
 end
+if presentNum > 1
+	set(handles.PrevDataButton, 'Enable', 'on');
+end
+if presentNum < totalNum
+	set(handles.NextDataButton, 'Enable', 'on');
+end
 startCol = 5; startRow = 9;
 height = 512; width = 640;
 [~, ori3sig] = loadData(dataList(presentNum).oriDataPath, height, width, startRow, startCol);
